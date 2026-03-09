@@ -38,5 +38,5 @@ class Project:
         logger.info(f"Processing sequence {sequence_path} for the benchmark...")
 
         sequence = Sequence(idx, sequence_path)
-        self.visualizer.initial_input(sequence)
+        self.visualizer.initial_scene(sequence)
 

@@ -56,6 +56,66 @@ class Visualizer:
                 timestamp=np.datetime64(int(row["timestamp"]), "ns")
             )
 
-            rr.log(f"{cam0}/image", rr.Image(img))
-            rr.log(f"{cam1}/image", rr.Image(img1))
+            rr.log(f"{sequence.name}/{cam0}/image", rr.Image(img))
+            rr.log(f"{sequence.name}/{cam1}/image", rr.Image(img1))
             
+    def initial_scene(self, sequence):
+        logger.info(f"Visualizing initial scene for sequence...")
+        cam0_dir = os.path.join(sequence.path, "aria/cam0/data")
+        cam1_dir = os.path.join(sequence.path, "aria/cam1/data")
+
+        for i in range(sequence.get_num_timestamps()):
+            bundle = sequence.get_frame_bundle(i)
+
+            # Timelines
+            rr.set_time("frame", sequence=i)
+
+            # Treat these as relative sensor times unless you know they are Unix timestamps
+            rr.set_time(
+                "sensor_time",
+                duration=np.timedelta64(int(bundle["timestamp"]), "ns")
+            )
+
+            # Images
+            cam0_path = os.path.join(cam0_dir, bundle["cam0_file"])
+            cam1_path = os.path.join(cam1_dir, bundle["cam1_file"])
+
+            if os.path.exists(cam0_path):
+                cam0_img = cv2.imread(cam0_path)
+                rr.log(f"{sequence.name}/cam0/image", rr.Image(cam0_img))
+
+            if os.path.exists(cam1_path):
+                cam1_img = cv2.imread(cam1_path)
+                rr.log(f"{sequence.name}/cam1/image", rr.Image(cam1_img))
+
+            # Optional text panel
+            rr.log(
+                "world/frame_info",
+                rr.TextDocument(
+                    f"frame: {i}\n"
+                    f"timestamp: {bundle['timestamp']}\n"
+                    f"cam0: {bundle['cam0_file']}\n"
+                    f"cam1: {bundle['cam1_file']}\n"
+                    f"num_imu: {len(bundle['imu'])}"
+                )
+            )
+
+            imu = bundle["imu"]
+            if len(imu) > 0:
+                rr.log(f"{sequence.name}/imu/gyro_x", rr.SeriesLines(names="gyro_x"), static=True)
+                rr.log(f"{sequence.name}/imu/gyro_y", rr.SeriesLines(names="gyro_y"), static=True)
+                rr.log(f"{sequence.name}/imu/gyro_z", rr.SeriesLines(names="gyro_z"), static=True)
+                rr.log(f"{sequence.name}/imu/accel_x", rr.SeriesLines(names="accel_x"), static=True)
+                rr.log(f"{sequence.name}/imu/accel_y", rr.SeriesLines(names="accel_y"), static=True)
+                rr.log(f"{sequence.name}/imu/accel_z", rr.SeriesLines(names="accel_z"), static=True)
+
+                for _, row in imu.iterrows():
+                    rr.set_time(
+                        "imu_time",
+                        duration=np.timedelta64(int(row["timestamp"]), "ns")
+                    )
+                    rr.log(f"{sequence.name}/imu/gyro_x", rr.Scalars([row["gyro_x"]]))
+                    rr.log(f"{sequence.name}/imu/gyro_y", rr.Scalars([row["gyro_y"]]))
+                    rr.log(f"{sequence.name}/imu/gyro_z", rr.Scalars([row["gyro_z"]]))
+                    rr.log(f"{sequence.name}/imu/accel_x", rr.Scalars([row["accel_x"]]))
+                    rr.log(f"{sequence.name}/imu/accel_y", rr.Scalars([row["accel_y"]]))
