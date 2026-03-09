@@ -1,0 +1,61 @@
+import logging
+import rerun as rr
+import os 
+import numpy as np
+import cv2
+
+logger = logging.getLogger(__name__)
+
+class Visualizer:
+    def __init__(self, name="visualizer", spawn=True):
+        rr.init(name, spawn=spawn)
+        if not spawn:
+            rr.serve_web_viewer(connect_to=rr.serve_grpc())
+
+    def initial_input(self, sequence):
+        logger.info(f"Visualizing initial input for sequence...")
+
+        cam0 = "cam0"
+        n = int(sequence.get_num_frames(cam0) / 10)
+        df = sequence.get_cam_df(cam0)
+        img_dir = sequence.get_cam_data_dir(cam0)
+
+        if len(df) == 0:
+            return
+        
+        cam1 = "cam1"
+        df1 = sequence.get_cam_df(cam1)
+        img_dir1 = sequence.get_cam_data_dir(cam1)
+
+        if len(df1) == 0:
+            return
+
+        # sample evenly across the whole sequence
+        sample_idx = np.linspace(0, len(df) - 1, min(n, len(df)), dtype=int)
+        sampled_df = df.iloc[sample_idx].reset_index(drop=True)
+        sampled_df1 = df1.iloc[sample_idx].reset_index(drop=True)
+
+        for i, row in sampled_df.iterrows():
+            img_path = os.path.join(img_dir, row["filename"])
+            print(f"Visualizing image: {img_path}")
+            if not os.path.exists(img_path):
+                continue
+
+
+            img_path1 = os.path.join(img_dir1, sampled_df1.iloc[i]["filename"])
+            print(f"Visualizing image: {img_path1}")
+            if not os.path.exists(img_path1):
+                continue
+
+            img = np.array(cv2.imread(img_path))
+            img1 = np.array(cv2.imread(img_path1))
+
+            # rr.set_time("frame", sequence=i)
+            rr.set_time(
+                "timestamp",
+                timestamp=np.datetime64(int(row["timestamp"]), "ns")
+            )
+
+            rr.log(f"{cam0}/image", rr.Image(img))
+            rr.log(f"{cam1}/image", rr.Image(img1))
+            

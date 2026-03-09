@@ -1,0 +1,5 @@
+rerun-sdk
+pandas
+numpy
+opencv-python
+pytest
