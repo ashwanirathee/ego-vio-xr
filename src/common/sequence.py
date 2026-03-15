@@ -6,31 +6,29 @@ logger = logging.getLogger(__name__)
 
 
 class Sequence:
-    def __init__(self, idx, path):
+    def __init__(self, idx, path, entry_folder="aria"):
         self.idx = idx
         self.path = path
         self.name = os.path.basename(path)
         logger.info("Initialized sequence with index: %d, path: %s", idx, path)
 
-        self.timestamps = pd.read_csv(
-            os.path.join(path, f"aria/{self.name}.txt"),
-            header=None,
-            names=["timestamp"],
-            dtype={"timestamp": "int64"},
-        )
         self.cam0_df = pd.read_csv(
-            os.path.join(path, "aria/cam0/data.csv"),
-            header=None,
+            os.path.join(path, entry_folder, "cam0/data.csv"),
+            comment="#",
             names=["timestamp", "filename"],
+            dtype={"timestamp": "int64", "filename": "string"},
         )
+
         self.cam1_df = pd.read_csv(
-            os.path.join(path, "aria/cam1/data.csv"),
-            header=None,
+            os.path.join(path, entry_folder, "cam1/data.csv"),
+            comment="#",
             names=["timestamp", "filename"],
+            dtype={"timestamp": "int64", "filename": "string"},
         )
+
         self.imu0_df = pd.read_csv(
-            os.path.join(path, "aria/imu0/data.csv"),
-            header=None,
+            os.path.join(path, entry_folder, "imu0/data.csv"),
+            comment="#",
             names=[
                 "timestamp",
                 "gyro_x",
@@ -40,20 +38,22 @@ class Sequence:
                 "accel_y",
                 "accel_z",
             ],
+            dtype={
+                "timestamp": "int64",
+                "gyro_x": "float64",
+                "gyro_y": "float64",
+                "gyro_z": "float64",
+                "accel_x": "float64",
+                "accel_y": "float64",
+                "accel_z": "float64",
+            },
         )
 
         self.stereo_df = self.cam0_df.merge(
             self.cam1_df, on="timestamp", suffixes=("_cam0", "_cam1")
         )
 
-        self.timeline_df = self.timestamps.merge(
-            self.cam0_df, on="timestamp", how="left"
-        ).merge(
-            self.cam1_df,
-            on="timestamp",
-            how="left",
-            suffixes=("_cam0", "_cam1"),
-        )
+        self.timestamps = self.stereo_df[["timestamp"]]
 
     def get_num_frames(self, cam: str):
         if cam == "cam0":
