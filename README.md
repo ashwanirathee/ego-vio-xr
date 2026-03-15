@@ -36,3 +36,27 @@ The sequences below are from the EuRoC dataset, and the metrics are computed usi
 | MH_03_medium    | medium     |   0.0267 |   0.0235 |     0.0226 |  0.0127 |  0.0017 |  0.1036 |
 | MH_04_difficult | difficult  |   0.0452 |   0.0374 |     0.0280 |  0.0254 |  0.0012 |  0.1857 |
 | MH_05_difficult | difficult  |   0.0656 |   0.0570 |     0.0465 |  0.0325 |  0.0044 |  0.1711 |
+
+Below are plots of the trajectories for MH_05_difficult:
+<table>
+  <tr>
+    <td align="center">
+      <img src="assets/orb_slam3/rpy.png" width="100%"><br>
+      <sub>MH_05_difficult RPY</sub>
+    </td>
+    <td align="center">
+      <img src="assets/orb_slam3/speeds.png" width="100%"><br>
+      <sub>MH_05_difficult Speed</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="assets/orb_slam3/trajectories_3d.png" width="100%"><br>
+      <sub>MH_05_difficult Trajectory 3D</sub>
+    </td>
+    <td align="center">
+      <img src="assets/orb_slam3/xyz.png" width="100%"><br>
+      <sub>MH_05_difficult XYZ</sub>
+    </td>
+  </tr>
+</table>
