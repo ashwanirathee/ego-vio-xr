@@ -1,4 +1,5 @@
 data/
+data_outputs/
 docs/
 __pycache__
 .venv/
